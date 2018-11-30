@@ -72,3 +72,31 @@ MERGE (r)-[c:commande]->(p)
 SET c.quantite = row.quantity
 SET c.date = row.date
 SET p.prix = row.price
+
+i
+MATCH (n:receipt)
+WHERE exists(n.Client_nouveau) 
+WITH COLLECT (n) AS liste_clientnv
+UNWIND liste_clientnv AS n
+MATCH (n:receipt)--(p:product_name)--(m:receipt)
+WHERE not(exists(m.Client_nouveau))
+WITH n,m,COUNT(p) AS commun
+MATCH (m:receipt)--(p:product_name)
+WITH n,m,commun, count(p) AS degm
+MATCH (n:receipt)--(p:product_name)
+WITH  n,m,commun,degm, count(p) AS degn
+RETURN n,m, 100*commun/(degm+degn-commun) AS sim ORDER BY sim DESC LIMIT 20
+
+j
+MATCH (n:receipt)
+WHERE exists(n.Client_nouveau) 
+MATCH (n:receipt)--(p:product_name)--(m:receipt)
+WHERE not(exists(m.Client_nouveau))
+WITH n,m,COUNT(p) AS commun
+MATCH (m:receipt)--(p:product_name)
+WITH n,m,commun, count(p) AS degm
+MATCH (n:receipt)--(p:product_name)
+WITH  n,m,commun,degm, count(p) AS degn
+with n,m, 100*commun/(degm+degn-commun) AS sim ORDER BY sim DESC
+WITH n,COLLECT([m,sim]) AS liste_clientnv
+return n, liste_clientnv[..10]
