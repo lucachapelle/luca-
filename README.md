@@ -58,3 +58,17 @@ WITH m,n,commun, count(r) AS degm
 MATCH (n:product_name)--(r:receipt)
 WITH  m,n,commun,degm, count(r) AS degn
 RETURN m.Produit,n.Produit, 100*commun/(degm+degn-commun) AS sim ORDER BY sim DESC LIMIT 10
+
+USING PERIODIC COMMIT 10
+LOAD CSV WITH HEADERS FROM "file:///export-IT-1sur4-sans-boisson.csv" AS row
+MERGE (r:receipt{Client:row.receipt})
+SET r.Client_nouveau = "Client_nouveau"
+
+USING PERIODIC COMMIT 10
+LOAD CSV WITH HEADERS FROM "file:///export-IT-1sur4-sans-boisson.csv" AS row
+MATCH (r:receipt{Client:row.receipt})
+MATCH (p:product_name{Produit:row.product_name})
+MERGE (r)-[c:commande]->(p)
+SET c.quantite = row.quantity
+SET c.date = row.date
+SET p.prix = row.price
