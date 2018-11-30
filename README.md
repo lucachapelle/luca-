@@ -23,3 +23,12 @@ cree une boisson
 MATCH (m:Boisson),(n:product_name)
 WHERE (n)--(:BoissonG) or  (n)--(:Vin) or (n)--(:Birra) or n.Produit=~'.*Vittel|.*Espresso.*|Caffè|.*Cappuccino.*|.*Latte.*|.*Thé.*|.*Menthe.*|Marocchino|.*Earl Grey.*|Macchiatto|.*Jasmin.*|Cioccolata - .|.*Simply.*|Camomille|.*Spritz.*|.*Chocolat Chaud.*|Liquide.*'
 MERGE (m)-[:estuneBoisson]-(n)
+
+question f
+
+MATCH (m:product_name) WHERE not (m)-[:estuneBoisson]-()
+WITH COLLECT (m) AS liste_plat
+UNWIND liste_plat AS m
+MATCH (n:product_name)--(r:receipt)--(m)
+WHERE  (n)-[:estuneBoisson]-() 
+RETURN m.Produit,n.Produit ,COUNT(r) AS commun ORDER BY commun DESC
