@@ -1,4 +1,5 @@
 luca 
+nathan
 d
 MATCH (n:product_name)--(r:receipt)--(m:product_name)
 WITH n,count(r) AS commun , m
