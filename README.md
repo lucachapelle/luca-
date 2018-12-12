@@ -123,3 +123,23 @@ MATCH (m:receipt)-[c:commande]-(p:product_name)
 WHERE not (p)-[:estuneBoisson]-()
 WITH n,p,sum(toInteger(c.quantite)) as qte ORDER by qte DESC
 RETURN n,collect([p.Produit,qte]) AS liste_plat
+
+l
+
+MATCH (n:receipt)
+WHERE exists(n.Client_nouveau) 
+MATCH (n:receipt)--(p:product_name)--(m:receipt)
+WHERE not(exists(m.Client_nouveau))
+WITH n,m,COUNT(p) AS commun
+MATCH (m:receipt)--(p:product_name)
+WITH n,m,commun, count(p) AS degm
+MATCH (n:receipt)--(p:product_name)
+WITH  n,m,commun,degm, count(p) AS degn
+with n,m, 100*commun/(degm+degn-commun) AS sim ORDER BY sim DESC
+WITH n,COLLECT(m) AS liste_client
+UNWIND liste_client[..10]  AS m 
+MATCH (m:receipt)-[c:commande]-(p:product_name)
+WHERE not (p)-[:estuneBoisson]-() and not(n)--(p)
+WITH n,p,sum(toInteger(c.quantite)) as qte ORDER by qte DESC
+WITH n,collect([p.Produit,qte]) AS liste_plat
+RETURN n,liste_plat[..1]
